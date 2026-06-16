@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+# Node / Next
+node_modules/
+.next/
+out/
+# 环境与密钥
+.env
+.env.local
+# 后端运行产物(不入库)
+backend/storage/*
+!backend/storage/.gitkeep
+backend/pregenerated/*
+!backend/pregenerated/.gitkeep
+# 模型 / 大文件 / 音频缓存
+hf_cache/
+*.ckpt
+*.safetensors
+*.wav
+*.mp3
+*.m4a
+# notebook 检查点
+.ipynb_checkpoints/
+# 系统
+.DS_Store
+Thumbs.db
+# 日志
+logs/
+*.log
