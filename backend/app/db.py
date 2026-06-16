@@ -68,3 +68,8 @@ def loads(value, default):
 
 def dumps(value) -> str:
     return json.dumps(value or [], ensure_ascii=False)
+
+
+def dumps_obj(value) -> str:
+    """不做 `or []` 强制,适合 dict(如 version.params 可能是 {})。"""
+    return json.dumps(value if value is not None else {}, ensure_ascii=False)

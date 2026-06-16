@@ -72,4 +72,38 @@ export const api = {
     );
     return data.edges;
   },
+
+  // ---- 生成(异步:返回 versionId+generating,前端轮询 getMotif)----
+  async ghost(id: string, body: { duration?: number } = {}): Promise<GenerateAck> {
+    return json(await _post(`${BASE}/api/motifs/${id}/ghost`, body));
+  },
+
+  async resurrect(id: string, body: GenerateParams = {}): Promise<GenerateAck> {
+    return json(await _post(`${BASE}/api/motifs/${id}/resurrect`, body));
+  },
+
+  async grow(id: string, body: GenerateParams = {}): Promise<GenerateAck> {
+    return json(await _post(`${BASE}/api/motifs/${id}/grow`, body));
+  },
 };
+
+function _post(url: string, body: unknown) {
+  return fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export interface GenerateParams {
+  style?: string;
+  instruments?: string[];
+  mood?: string;
+  lyrics?: string;
+  duration?: number;
+}
+
+export interface GenerateAck {
+  versionId: string;
+  status: "generating";
+}

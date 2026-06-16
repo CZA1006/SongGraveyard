@@ -4,7 +4,7 @@
 > 与 `DEVELOPMENT.md §4`(路由总表)、`PRD.md §6`(数据结构)互补,冲突以 docs 的更新为准。
 > 改契约前先改本文件 + 对应 docs,再动代码(AGENTS 铁律)。
 
-最后更新:2026-06-17
+最后更新:2026-06-17(切片 3/4/5 完成)
 
 ---
 
@@ -15,9 +15,9 @@
 | 0 | 地基(config/db/models/CORS/静态挂载) | ✅ | ✅ api.ts+types | ✅ 启动+health | **done** |
 | 1 | upload + motif CRUD | ✅ | ✅ `/create`、`/` 列表、`/motif/[id]` 最小版 | ✅ pytest 2 passed | **done** |
 | 2 | graph 规则关联 + 权重 | ✅ relationships.py、`GET /relationships` | ✅ React Flow graph | ✅ | **done** |
-| 3 | 详情页 | (复用 GET 详情) | ⬜ 视觉头/波形/AI actions/对比 | ⬜ | todo |
-| 4 | ghost 生成(异步 + pregen 回落) | ⬜ BackgroundTask + 回落 + ghost 路由 | ⬜ 按钮+轮询+ComparePlayer | ⬜ | todo |
-| 5 | resurrect + grow | ⬜ 复用异步框架 | ⬜ 风格/配器/情绪/歌词 UI | ⬜ | todo |
+| 3 | 详情页 | (复用 GET 详情) | ✅ 视觉头/波形(Wavesurfer)/AI actions/对比/轮询 | — | **done** |
+| 4 | ghost 生成(异步 + pregen 回落) | ✅ generation.py(BackgroundTask)+ 回落 + ghost 路由 | ✅ 按钮+轮询+版本对比 | ✅ pytest 5 | **done** |
+| 5 | resurrect + grow | ✅ 复用 generation 核心 + 两路由 | ✅ 风格/配器/情绪/歌词 UI | ✅ pytest | **done** |
 | 6 | remix(ffmpeg 合并 → 新节点) | ⬜ audio.merge → 生成 | ⬜ `/remix` | ⬜ | todo |
 
 ---
@@ -74,15 +74,15 @@ Version = { id, type:("ghost"|"resurrect"|"grow"|"remix"),
             params:{}, error:str|null, createdAt, completedAt|null }
 ```
 
-### POST `/api/motifs/{id}/resurrect`  (json)  ⬜ 切片5
+### POST `/api/motifs/{id}/resurrect`  (json)  ✅ 切片5
 ```
 req:  { "style"?: str, "instruments"?: [str], "mood"?: str, "lyrics"?: str, "duration"?: int }
-res:  202 { "versionId": "ver_x", "status": "generating" }
+res:  202 { "versionId": "ver_x", "status": "generating" }   // 成功后 motif.status→"resurrected"
 ```
 
-### POST `/api/motifs/{id}/grow`  (json)  ⬜ 切片5  —— 同 resurrect 形状,内部 acestep.grow()
+### POST `/api/motifs/{id}/grow`  (json)  ✅ 切片5  —— 同 resurrect 形状,内部 acestep.grow()
 
-### POST `/api/motifs/{id}/ghost`  (json)  ⬜ 切片4
+### POST `/api/motifs/{id}/ghost`  (json)  ✅ 切片4
 ```
 req:  { "duration"?: int }     // 默认 20s
 res:  202 { "versionId": "ver_x", "status": "generating" }   // 成功后 motif.status→"ghosted"

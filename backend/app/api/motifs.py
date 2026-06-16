@@ -1,16 +1,22 @@
-"""动机相关路由:upload + motif CRUD(切片 1)。
-生成接口(resurrect/grow/ghost/remix)在后续切片接入。"""
+"""动机相关路由:upload + motif CRUD(切片 1)+ 生成 ghost/resurrect/grow(切片 4/5)。
+remix 在切片 6 接入。"""
 import uuid
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
 
 from .. import config, db, models
-from ..services import audio, llm
+from ..services import audio, generation, llm
 from ..services.relationships import compute_edges, related_ids
 
 router = APIRouter(prefix="/api", tags=["motifs"])
+
+
+def _require_motif(motif_id: str) -> None:
+    with db.connect() as conn:
+        if conn.execute("SELECT 1 FROM motifs WHERE id = ?", (motif_id,)).fetchone() is None:
+            raise HTTPException(404, f"motif 不存在:{motif_id}")
 
 
 def _now() -> str:
@@ -103,3 +109,26 @@ def _fetch_detail(motif_id: str) -> dict:
 
     edges = compute_edges(motifs)
     return models.motif_detail(row, versions=versions, related_ids=related_ids(motif_id, edges))
+
+
+# ---------- 生成(异步:立即返回 versionId+generating,前端轮询详情)----------
+@router.post("/motifs/{motif_id}/ghost", status_code=202)
+def ghost(motif_id: str, body: models.GhostRequest, background_tasks: BackgroundTasks):
+    _require_motif(motif_id)
+    params = {"duration": body.duration}
+    vid = generation.start_generation(motif_id, "ghost", params, background_tasks)
+    return {"versionId": vid, "status": "generating"}
+
+
+@router.post("/motifs/{motif_id}/resurrect", status_code=202)
+def resurrect(motif_id: str, body: models.GenerateRequest, background_tasks: BackgroundTasks):
+    _require_motif(motif_id)
+    vid = generation.start_generation(motif_id, "resurrect", body.model_dump(), background_tasks)
+    return {"versionId": vid, "status": "generating"}
+
+
+@router.post("/motifs/{motif_id}/grow", status_code=202)
+def grow(motif_id: str, body: models.GenerateRequest, background_tasks: BackgroundTasks):
+    _require_motif(motif_id)
+    vid = generation.start_generation(motif_id, "grow", body.model_dump(), background_tasks)
+    return {"versionId": vid, "status": "generating"}
