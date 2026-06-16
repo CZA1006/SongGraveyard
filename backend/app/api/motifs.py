@@ -8,6 +8,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from .. import config, db, models
 from ..services import audio, llm
+from ..services.relationships import compute_edges, related_ids
 
 router = APIRouter(prefix="/api", tags=["motifs"])
 
@@ -98,5 +99,7 @@ def _fetch_detail(motif_id: str) -> dict:
         versions = conn.execute(
             "SELECT * FROM versions WHERE motif_id = ? ORDER BY created_at ASC", (motif_id,)
         ).fetchall()
-    # relatedMotifIds 在切片 2(relationships)接入,先空
-    return models.motif_detail(row, versions=versions, related_ids=[])
+        motifs = conn.execute("SELECT * FROM motifs ORDER BY id ASC").fetchall()
+
+    edges = compute_edges(motifs)
+    return models.motif_detail(row, versions=versions, related_ids=related_ids(motif_id, edges))

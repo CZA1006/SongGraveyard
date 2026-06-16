@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import config, db
-from .api import motifs
+from .api import motifs, relationships
 
 app = FastAPI(title="SongGraveyard API")
 
@@ -46,6 +46,7 @@ app.mount("/storage", StaticFiles(directory=str(config.STORAGE_DIR)), name="stor
 app.mount("/pregenerated", StaticFiles(directory=str(config.PREGEN_DIR)), name="pregenerated")
 
 app.include_router(motifs.router)
+app.include_router(relationships.router)
 
 
 @app.get("/health")

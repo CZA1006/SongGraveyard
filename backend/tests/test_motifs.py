@@ -1,32 +1,7 @@
 """切片 1 最小测试:upload + motif CRUD。
 用临时 DB/storage,避免污染真实数据;不打真实 AI。"""
-import importlib
 import io
 import wave
-
-import pytest
-
-
-@pytest.fixture()
-def client(tmp_path, monkeypatch):
-    # 指向临时目录,隔离测试
-    monkeypatch.setenv("STORAGE_DIR", str(tmp_path / "storage"))
-    monkeypatch.setenv("PREGEN_DIR", str(tmp_path / "pregen"))
-    monkeypatch.setenv("DB_PATH", str(tmp_path / "app.db"))
-
-    from app import config as cfg
-    importlib.reload(cfg)
-    from app import db as dbmod
-    importlib.reload(dbmod)
-    from app import models as m
-    importlib.reload(m)
-    from app.api import motifs as mt
-    importlib.reload(mt)
-    from app import main
-    importlib.reload(main)
-
-    from fastapi.testclient import TestClient
-    return TestClient(main.app)
 
 
 def _wav_bytes(seconds=1) -> bytes:

@@ -14,7 +14,7 @@
 |---|---|---|---|---|---|
 | 0 | 地基(config/db/models/CORS/静态挂载) | ✅ | ✅ api.ts+types | ✅ 启动+health | **done** |
 | 1 | upload + motif CRUD | ✅ | ✅ `/create`、`/` 列表、`/motif/[id]` 最小版 | ✅ pytest 2 passed | **done** |
-| 2 | graph 规则关联 + 权重 | ⬜ relationships.py、`GET /relationships` | ⬜ React Flow graph | ⬜ | todo |
+| 2 | graph 规则关联 + 权重 | ✅ relationships.py、`GET /relationships` | ✅ React Flow graph | ✅ | **done** |
 | 3 | 详情页 | (复用 GET 详情) | ⬜ 视觉头/波形/AI actions/对比 | ⬜ | todo |
 | 4 | ghost 生成(异步 + pregen 回落) | ⬜ BackgroundTask + 回落 + ghost 路由 | ⬜ 按钮+轮询+ComparePlayer | ⬜ | todo |
 | 5 | resurrect + grow | ⬜ 复用异步框架 | ⬜ 风格/配器/情绪/歌词 UI | ⬜ | todo |
@@ -94,7 +94,7 @@ req:  { "motifIds": [str](≥2), "direction"?: str }
 res:  202 { "motifId": "motif_new", "versionId": "ver_x", "status": "generating" }
 ```
 
-### GET `/api/relationships`  ⬜ 切片2
+### GET `/api/relationships`  ✅ 切片2
 ```
 res:  { "edges": [ { "source":str, "target":str,
                      "relationType":"same_mood"|"same_project"|"same_location"|"remix",
