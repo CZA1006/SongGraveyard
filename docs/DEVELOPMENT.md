@@ -165,18 +165,24 @@ IMAGE_API_KEY=
 
 ## 8. 上手 / 运行
 
-**Coding A(后端 + AI)**
+**Coding A(后端 + AI)** —— 需 Python 3.11+(系统默认 `python3` 可能是 3.7,跑不了;务必用 `python3.11`)
 ```bash
-cd backend && python -m venv .venv && source .venv/bin/activate
-pip install fastapi uvicorn requests pydub python-multipart
-# 装 ffmpeg(系统级)
-uvicorn app.main:app --reload
+cd backend
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+# 装 ffmpeg(系统级:macOS `brew install ffmpeg`)
+cp ../.env.example ../.env        # 填 ACESTEP_BASE_URL,按需设 GENERATION_MODE
+uvicorn app.main:app --reload     # http://localhost:8000  (/health 自检)
+pytest                            # 跑后端测试
 ```
 AI 引擎:**主力用队友 32GB Mac** 起 `acestep-api`(macOS/MLX,LM 用 `pt` 后端)+ cloudflared 暴露公网 URL,填进 `.env` 的 `ACESTEP_BASE_URL`(持久、能跑 complete)。早期/备份可用 `ai/colab/ACE_Step_Colab_Endpoint.ipynb`;大批量预生成走 `ai/superpod/`;EC2 $50 可在 6/20 前加速并批量预生成。
 
-**Coding B(前端)**
+**Coding B(前端)** —— 脚手架已就绪,直接装依赖
 ```bash
-cd frontend && npm install && npm run dev
+cd frontend
+npm install
+cp .env.local.example .env.local  # NEXT_PUBLIC_API_BASE=http://localhost:8000
+npm run dev                       # http://localhost:3000
 # lib/api.ts 里 BASE = 后端地址,不直连 ACE-Step
 ```
 
