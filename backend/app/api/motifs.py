@@ -1,5 +1,4 @@
-"""动机相关路由:upload + motif CRUD(切片 1)+ 生成 ghost/resurrect/grow(切片 4/5)。
-remix 在切片 6 接入。"""
+"""动机相关路由:upload + motif CRUD + 生成 ghost/resurrect/grow/remix。"""
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -132,3 +131,15 @@ def grow(motif_id: str, body: models.GenerateRequest, background_tasks: Backgrou
     _require_motif(motif_id)
     vid = generation.start_generation(motif_id, "grow", body.model_dump(), background_tasks)
     return {"versionId": vid, "status": "generating"}
+
+
+@router.post("/remix", status_code=202)
+def remix(body: models.RemixRequest, background_tasks: BackgroundTasks):
+    params = {"direction": body.direction}
+    motif_id, version_id = generation.start_remix(
+        body.motifIds,
+        body.direction,
+        params,
+        background_tasks,
+    )
+    return {"motifId": motif_id, "versionId": version_id, "status": "generating"}

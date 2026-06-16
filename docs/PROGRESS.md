@@ -4,7 +4,7 @@
 > 与 `DEVELOPMENT.md §4`(路由总表)、`PRD.md §6`(数据结构)互补,冲突以 docs 的更新为准。
 > 改契约前先改本文件 + 对应 docs,再动代码(AGENTS 铁律)。
 
-最后更新:2026-06-17(切片 3/4/5 完成)
+最后更新:2026-06-17(切片 3/4/5/6 完成)
 
 ---
 
@@ -18,7 +18,7 @@
 | 3 | 详情页 | (复用 GET 详情) | ✅ 视觉头/波形(Wavesurfer)/AI actions/对比/轮询 | — | **done** |
 | 4 | ghost 生成(异步 + pregen 回落) | ✅ generation.py(BackgroundTask)+ 回落 + ghost 路由 | ✅ 按钮+轮询+版本对比 | ✅ pytest 5 | **done** |
 | 5 | resurrect + grow | ✅ 复用 generation 核心 + 两路由 | ✅ 风格/配器/情绪/歌词 UI | ✅ pytest | **done** |
-| 6 | remix(ffmpeg 合并 → 新节点) | ⬜ audio.merge → 生成 | ⬜ `/remix` | ⬜ | todo |
+| 6 | remix(ffmpeg 合并 → 新节点) | ✅ audio.merge → 生成 | ✅ `/remix` | ✅ pytest | **done** |
 
 ---
 
@@ -88,7 +88,7 @@ req:  { "duration"?: int }     // 默认 20s
 res:  202 { "versionId": "ver_x", "status": "generating" }   // 成功后 motif.status→"ghosted"
 ```
 
-### POST `/api/remix`  (json)  ⬜ 切片6
+### POST `/api/remix`  (json)  ✅ 切片6
 ```
 req:  { "motifIds": [str](≥2), "direction"?: str }
 res:  202 { "motifId": "motif_new", "versionId": "ver_x", "status": "generating" }

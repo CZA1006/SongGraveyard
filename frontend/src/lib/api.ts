@@ -85,6 +85,10 @@ export const api = {
   async grow(id: string, body: GenerateParams = {}): Promise<GenerateAck> {
     return json(await _post(`${BASE}/api/motifs/${id}/grow`, body));
   },
+
+  async remix(motifIds: string[], direction?: string): Promise<RemixAck> {
+    return json(await _post(`${BASE}/api/remix`, { motifIds, direction }));
+  },
 };
 
 function _post(url: string, body: unknown) {
@@ -106,4 +110,8 @@ export interface GenerateParams {
 export interface GenerateAck {
   versionId: string;
   status: "generating";
+}
+
+export interface RemixAck extends GenerateAck {
+  motifId: string;
 }

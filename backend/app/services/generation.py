@@ -15,11 +15,18 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+from fastapi import HTTPException
+
 from .. import config, db
-from . import acestep, llm
+from . import acestep, audio, llm
 
 # 生成类型 → motif 完成后的状态
-_DONE_STATUS = {"ghost": "ghosted", "resurrect": "resurrected", "grow": "resurrected"}
+_DONE_STATUS = {
+    "ghost": "ghosted",
+    "resurrect": "resurrected",
+    "grow": "resurrected",
+    "remix": "resurrected",
+}
 
 
 def _now() -> str:
@@ -63,6 +70,8 @@ def _call_acestep(gen_type: str, src_path: str, params: dict, text_note: str | N
     )
     lyrics = params.get("lyrics") or ""
     if gen_type == "resurrect":
+        return acestep.resurrect(src_path, caption, lyrics=lyrics, duration=duration or 90)
+    if gen_type == "remix":
         return acestep.resurrect(src_path, caption, lyrics=lyrics, duration=duration or 90)
     if gen_type == "grow":
         return acestep.grow(src_path, caption, lyrics=lyrics, duration=duration or 120)
@@ -133,3 +142,65 @@ def start_generation(motif_id: str, gen_type: str, params: dict, background_task
         )
     background_tasks.add_task(_run_generation, version_id, motif_id, gen_type, params)
     return version_id
+
+
+def start_remix(
+    motif_ids: list[str],
+    direction: str | None,
+    params: dict,
+    background_tasks,
+) -> tuple[str, str]:
+    """创建 remix motif,合并源音频,再复用异步生成核心调度 remix version。"""
+    with db.connect() as conn:
+        placeholders = ",".join("?" for _ in motif_ids)
+        rows = conn.execute(
+            f"SELECT * FROM motifs WHERE id IN ({placeholders})", motif_ids
+        ).fetchall()
+
+    by_id = {row["id"]: row for row in rows}
+    missing = [motif_id for motif_id in motif_ids if motif_id not in by_id]
+    if missing:
+        raise HTTPException(404, f"motif 不存在:{missing[0]}")
+
+    src_paths = [_url_to_path(by_id[motif_id]["audio_url"]) for motif_id in motif_ids]
+    for src_path in src_paths:
+        if not src_path.exists():
+            raise HTTPException(400, f"源音频不存在:{src_path}")
+
+    motif_id = f"motif_{uuid.uuid4().hex[:8]}"
+    dst_path = config.AUDIO_DIR / f"{motif_id}.wav"
+    audio.merge(src_paths, dst_path)
+
+    note = (direction or "").strip() or " / ".join(row["title"] for row in rows)
+    title = f"Remix of {len(motif_ids)} motifs"
+    epitaph = llm.generate_epitaph(note, [])
+    created = _now()
+    audio_url = f"/storage/audio/{dst_path.name}"
+
+    with db.connect() as conn:
+        conn.execute(
+            """INSERT INTO motifs
+               (id,title,epitaph,audio_url,image_url,text_note,created_at,
+                location,mood_tags,project_tags,status,weight,is_remix,source_motif_ids)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                motif_id,
+                title,
+                epitaph,
+                audio_url,
+                None,
+                note,
+                created,
+                None,
+                db.dumps([]),
+                db.dumps([]),
+                "buried",
+                0,
+                1,
+                db.dumps(motif_ids),
+            ),
+        )
+
+    remix_params = {**(params or {}), "direction": direction}
+    version_id = start_generation(motif_id, "remix", remix_params, background_tasks)
+    return motif_id, version_id
