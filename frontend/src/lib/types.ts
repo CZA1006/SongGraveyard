@@ -28,6 +28,10 @@ export interface MotifSummary {
   projectTags: string[];
   location: string | null;
   createdAt: string;
+  // Frontend-only: populated for locally-created motifs, absent for API motifs
+  audioUrl?: string | null;
+  durationSec?: number;
+  extraImageUrls?: string[]; // all captured photos after the first
 }
 
 export interface Motif extends MotifSummary {
